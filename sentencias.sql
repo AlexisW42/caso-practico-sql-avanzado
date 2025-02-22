@@ -9,9 +9,9 @@
 -- facturas fueron generadas para clientes de la ciudad de Medellín.
 
 SELECT
-    fac.id_factura,
-    fac.fecha_factura,
-    fac.vr_antes_iva
+    fac.id_factura AS "Identificador factura",
+    fac.fecha_factura AS "Fecha factura",
+    fac.vr_antes_iva AS "Precio sin iva"
 FROM facturas fac
 JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
 JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
@@ -25,7 +25,7 @@ AND cli.ciudad_cl = 'MEDELLIN';
 
 SELECT 'El Cliente ' || cli.nombre_cl || ' es un ' || cli.segmento_cl ||
     ' que reside en la ciudad ' || cli.ciudad_cl || ' del País ' ||
-    cli.pais_cl AS descripcion_cliente
+    cli.pais_cl AS "Descripcion cliente"
 FROM clientes cli;
 
 
@@ -35,10 +35,10 @@ FROM clientes cli;
 -- descendente.
 
 SELECT
-    ven.vendedor,
-    fac.fecha_factura,
-    fac.total_factura,
-    can.canal_venta
+    ven.vendedor AS "Nombre vendedor",
+    fac.fecha_factura AS "Fecha de factura",
+    fac.total_factura AS "Total Factura",
+    can.canal_venta AS "Canal de venta"
 FROM facturas fac
 JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
 JOIN canales can ON fac.fk_canales = can.id_canal
@@ -50,12 +50,13 @@ ORDER BY ven.vendedor ASC, can.canal_venta DESC;
 -- durado más de 10 días.
 
 SELECT
-    ser.fk_sucursales,
-    ser.id_servicio,
-    ser.costo_servicio,
-    cli.nombre_cl
+    suc.sucursal AS "Sucursal",
+    ser.id_servicio AS "Num. servicio",
+    ser.costo_servicio AS "Costo",
+    cli.nombre_cl AS "Cliente"
 FROM servicios ser
 JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
+JOIN sucursales suc ON ser.fk_sucursales = suc.id_sucursal
 WHERE cli.segmento_cl = 'HOMBRE'
 AND (ser.fecha_fin_serv - ser.fecha_inicio_serv) > 10;
 
@@ -67,8 +68,8 @@ AND (ser.fecha_fin_serv - ser.fecha_inicio_serv) > 10;
 -- ‘SEGMENTO HOMBRE Y RESIDE EN LA CIUDAD XXXXXXX’.
 
 SELECT
-    fac.id_factura,
-    fac.total_factura,
+    fac.id_factura AS "Num. factura",
+    fac.total_factura AS "Total factura",
     CASE
         WHEN cli.segmento_cl = 'MUJER'
             THEN 'SEGMENTO MUJER RESIDE EN EL PAIS ' || cli.pais_cl
@@ -86,11 +87,11 @@ WHERE cli.pais_cl = 'PERÚ';
 -- igual al monto facturado.
 
 SELECT
-    cli.nombre_cl,
-    fac.fecha_factura,
-    fac.total_factura,
-    cob.fecha_cobro,
-    cob.valor_cobrado
+    cli.nombre_cl AS "Cliente",
+    fac.fecha_factura AS "Fecha factura",
+    fac.total_factura AS "Total factura",
+    cob.fecha_cobro AS "Fecha de cobro",
+    cob.valor_cobrado AS "Valor cobrado"
 FROM facturas fac
 JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
 JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas
@@ -107,15 +108,15 @@ AND cob.valor_cobrado = fac.total_factura;
 -- Debe ordenar por cliente y numero de factura.
 
 SELECT
-    ven.vendedor,
-    can.canal_venta,
-    fac.id_factura,
-    cob.valor_cobrado,
+    ven.vendedor AS "Vendedor",
+    can.canal_venta AS "Canal de venta",
+    fac.id_factura AS "Num. factura",
+    cob.valor_cobrado AS "Valor cobrado",
     CASE
         WHEN (cob.valor_cobrado / fac.total_factura) = 1
             THEN 'Cobro Total'
         ELSE 'Cobro Parcial'
-    END AS estado_cobro
+    END AS "Estado cobro"
 FROM facturas fac
 JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
 JOIN canales can ON fac.fk_canales = can.id_canal
@@ -129,8 +130,7 @@ ORDER BY fac.fk_clientes ASC, fac.id_factura ASC;
 -- 9) Consultar el nombre de las diferentes sucursales que han generado
 -- servicios
 
-SELECT
-    DISTINCT suc.sucursal
+SELECT DISTINCT suc.sucursal AS "Sucursal"
 FROM servicios ser
 JOIN sucursales suc ON ser.fk_sucursales = suc.id_sucursal;
 
@@ -145,21 +145,21 @@ JOIN sucursales suc ON ser.fk_sucursales = suc.id_sucursal;
 -- Saldada'.
 
 SELECT
-    ven.vendedor,
-    cli.nombre_cl,
-    SUM(fac.total_factura) AS Facturado,
+    ven.vendedor AS "Vendedor",
+    cli.nombre_cl AS "Cliente",
+    SUM(fac.total_factura) AS "Facturado",
     CASE
         WHEN SUM(cob.valor_cobrado) IS NULL
             THEN 0
         ELSE SUM(cob.valor_cobrado)
-    END AS Cobrado,
+    END AS "Valor cobrado",
     CASE
         WHEN SUM(cob.valor_cobrado) IS NULL
             THEN TO_CHAR(SUM(fac.total_factura))
         WHEN SUM(fac.total_factura) - SUM(cob.valor_cobrado) = 0
             THEN 'Deuda Saldada'
         ELSE TO_CHAR(SUM(fac.total_factura) - SUM(cob.valor_cobrado))
-    END AS "Deuda Pendiente"
+    END AS "Deuda pendiente"
 FROM facturas fac
 JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
 JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
@@ -172,8 +172,8 @@ GROUP BY ven.vendedor, cli.nombre_cl;
 -- aparecer el año y la cantidad de facturas del respectivo año.
 
 SELECT
-    EXTRACT(YEAR FROM fecha_factura) AS año,
-    COUNT(*) AS cantidad_facturas
+    EXTRACT(YEAR FROM fecha_factura) AS "Año",
+    COUNT(*) AS "Cantidad de facturas"
 FROM facturas
 GROUP BY EXTRACT(YEAR FROM fecha_factura)
 HAVING
@@ -181,7 +181,7 @@ HAVING
     (SELECT
         AVG(COUNT(*))
     FROM facturas
-    GROUP BY EXTRACT(YEAR FROM fecha_factura));
+GROUP BY EXTRACT(YEAR FROM fecha_factura));
 
 
 -- ?????
@@ -193,9 +193,9 @@ HAVING
 -- primer trimestre del año 2019.
 
 SELECT
-    can.canal_venta,
-    COUNT(*) AS cantidad_facturas,
-    AVG(fac.total_factura) AS monto_promedio_facturado
+    can.canal_venta AS "Canal de venta",
+    COUNT(*) AS "Cantidad de facturas",
+    AVG(fac.total_factura) AS "Monto promedio facturado"
 FROM facturas fac
 JOIN canales can ON fac.fk_canales = can.id_canal
 JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
@@ -267,11 +267,11 @@ JOIN clientes cli ON ser.fk_clientes = cli.id_cliente;
 -- se encuentra en la documentación de SQL de Oracle.
 
 SELECT
-    hs.año,
-    hs.sucursal,
-    hs.costo_por_hora AS costo_por_hora_historico,
-    cs.costo_por_hora AS costo_por_hora_vista,
-    (hs.costo_por_hora - cs.costo_por_hora) AS diferencia
+    hs.año AS "Año",
+    hs.sucursal AS "Sucursal",
+    hs.costo_por_hora AS "Costo por hora historico",
+    cs.costo_por_hora AS "Costo por hora vista",
+    (hs.costo_por_hora - cs.costo_por_hora) AS "Diferencia"
 FROM historico_servicios hs
 JOIN costos_servicios cs ON hs.año = cs.año AND hs.sucursal = cs.sucursal;
 
@@ -280,8 +280,8 @@ JOIN costos_servicios cs ON hs.año = cs.año AND hs.sucursal = cs.sucursal;
 -- hora servicio por susursal
 
 SELECT
-    sucursal,
-    AVG(costo_por_hora) AS costo_promedio_por_hora
+    sucursal AS "Sucursal",
+    AVG(costo_por_hora) AS "Costo promedio por hora"
 FROM costos_servicios
 GROUP BY sucursal;
 
@@ -295,9 +295,9 @@ GROUP BY sucursal;
 -- promedio de venta de la ciudad de Caracas.
 
 SELECT
-    ven.vendedor,
-    SUM(fac.total_factura) AS monto_total_facturado,
-    SUM(fac.total_factura) * 0.1 AS comision
+    ven.vendedor AS "Vendedor",
+    SUM(fac.total_factura) AS "Monto total facturado",
+    SUM(fac.total_factura) * 0.1 AS "Comision"
 FROM facturas fac
 JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
 GROUP BY ven.vendedor
@@ -312,7 +312,7 @@ HAVING
 -- 19) Mostrar cantidad de vendedores que no tienen ninguna factura asociada.
 
 SELECT
-    COUNT(DISTINCT ven.id_vendedor) AS "VENDEDORES SIN FACTURAS"
+    COUNT(DISTINCT ven.id_vendedor) AS "Vendedores sin facturas"
 FROM vendedores ven
 LEFT JOIN facturas fac on ven.id_vendedor = fac.fk_vendedores
 WHERE fac.fk_vendedores IS NULL;
@@ -323,9 +323,9 @@ WHERE fac.fk_vendedores IS NULL;
 -- facturado en el año 2019. Utilizar una subconsulta en la cláusula FROM.
 
 SELECT
-    can.canal_venta,
-    cli.pais_cl,
-    SUM(fac.iva) AS monto_total_iva
+    can.canal_venta AS "Canal de venta",
+    cli.pais_cl AS "Pais cliente",
+    SUM(fac.iva) AS "Monto total iva"
 FROM
     (SELECT
         f.id_factura,
@@ -380,9 +380,9 @@ GROUP BY suc.sucursal;
 -- consulta mostrar las facturas que no tienen cobranzas asociadas.
 
 SELECT
-    cli.nombre_cl,
-    fac.id_factura,
-    cob.id_cobranza
+    cli.nombre_cl AS "Cliente",
+    fac.id_factura AS "Num. factura",
+    cob.id_cobranza AS "Num. cobranza"
 FROM facturas fac
 JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
 LEFT JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas;
@@ -396,9 +396,9 @@ LEFT JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas;
 -- país sea ARGENTINA
 
 SELECT
-    suc.sucursal,
-    cli.nombre_cl,
-    SUM(ser.costo_servicio) AS suma_costos
+    suc.sucursal AS "Sucursal",
+    cli.nombre_cl AS "Cliente",
+    SUM(ser.costo_servicio) AS "Suma costos"
 FROM servicios ser
 JOIN sucursales suc ON ser.fk_sucursales = suc.id_sucursal
 JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
@@ -412,9 +412,9 @@ GROUP BY ROLLUP (suc.sucursal, cli.nombre_cl);
 -- segundo trimestre del año 2019.
 
 SELECT
-    cli.nombre_cl AS nombre_cliente,
-    can.canal_venta,
-    AVG(cob.valor_cobrado) AS promedio_cobrado
+    cli.nombre_cl AS "Cliente",
+    can.canal_venta AS "Canal de venta",
+    AVG(cob.valor_cobrado) AS "Promedio cobrado"
 FROM
     facturas f
     JOIN clientes cli ON f.fk_clientes = cli.id_cliente
@@ -431,10 +431,10 @@ ORDER BY cli.nombre_cl, can.canal_venta;
 -- los subtotales respectivos para el año que más se facturo.
 
 SELECT
-    cli.nombre_cl,
-    ven.vendedor,
-    can.canal_venta,
-    AVG(fac.total_factura) AS "PROMEDIO FACTURADO"
+    cli.nombre_cl AS "Cliente",
+    ven.vendedor AS "Vendedor",
+    can.canal_venta AS "Canal de venta",
+    AVG(fac.total_factura) AS "Promedio facturado"
 FROM
     facturas fac
     JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
@@ -457,10 +457,10 @@ ORDER BY cli.nombre_cl, can.canal_venta, ven.vendedor;
 -- los operadores UNION ALL.
 
 SELECT
-    cli.nombre_cl,
-    NULL AS vendedor,
-    can.canal_venta,
-    AVG(fac.total_factura) AS "PROMEDIO FACTURADO"
+    cli.nombre_cl AS "Cliente",
+    NULL AS "Vendedor",
+    can.canal_venta AS "Canal de venta",
+    AVG(fac.total_factura) AS "Promedio facturado"
 FROM
     facturas fac
     JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
@@ -477,14 +477,12 @@ WHERE
     )
 GROUP BY 
     cli.nombre_cl, can.canal_venta
-
 UNION ALL
-
 SELECT
-    cli.nombre_cl,
-    ven.vendedor,
-    NULL AS canal_venta,  -- No hay canal de venta en esta agrupación
-    AVG(fac.total_factura) AS "PROMEDIO FACTURADO"
+    cli.nombre_cl AS "Cliente",
+    ven.vendedor AS "Vendedor",
+    NULL AS "Canal de venta",  -- No hay canal de venta en esta agrupación
+    AVG(fac.total_factura) AS "Promedio facturado"
 FROM
     facturas fac
     JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
@@ -502,27 +500,3 @@ WHERE
 GROUP BY 
     cli.nombre_cl, ven.vendedor
 ORDER BY nombre_cl, canal_venta, vendedor;
-
-
-
-SELECT
-    cli.nombre_cl,
-    ven.vendedor,
-    can.canal_venta,
-    AVG(fac.total_factura) AS "PROMEDIO FACTURADO"
-FROM
-    facturas fac
-    JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
-    JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
-    JOIN canales can ON fac.fk_canales = can.id_canal
-WHERE 
-    EXTRACT(YEAR FROM fac.fecha_factura) = (
-        SELECT a.anho
-        FROM
-            (SELECT EXTRACT(YEAR FROM f.fecha_factura) AS anho
-            FROM facturas f
-            GROUP BY EXTRACT(YEAR FROM f.fecha_factura)
-            ORDER BY AVG(f.total_factura) DESC) a
-        WHERE ROWNUM = 1)
-GROUP BY GROUPING SETS ((cli.nombre_cl, can.canal_venta), (cli.nombre_cl, ven.vendedor))
-ORDER BY cli.nombre_cl, can.canal_venta, ven.vendedor;
