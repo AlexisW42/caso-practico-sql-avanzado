@@ -215,6 +215,8 @@ GROUP BY can.canal_venta;
 -- • Monto total por cobrar
 -- • Porcentaje del monto cobrado sobre lo facturado
 
+DROP TABLE historico_servicios CASCADE CONSTRAINTS;
+
 CREATE TABLE historico_servicios (
     año NUMBER(4),
     trimestre NUMBER(1),
@@ -240,6 +242,8 @@ ADD CONSTRAINT pk_historico_servicios PRIMARY KEY (año, trimestre);
 -- servicio, el costo o valor del servicio, el costo por hora del servicio,
 -- nombre del cliente al cual se realizo el servicio y el nombre de la
 -- sucursal. La vista deber ser de solo lectura.
+
+DROP VIEW costos_servicios CASCADE CONSTRAINTS;
 
 CREATE VIEW costos_servicios AS
 SELECT
@@ -350,6 +354,8 @@ GROUP BY can.canal_venta, cli.pais_cl;
 -- sucursal y el monto de la comisión por venta (15% sobre el monto total
 -- facturado) cuya duración del servicio no exceda el promedio de las duraciones
 -- de la sucursal.
+
+DROP TABLE venta_sucursal CASCADE CONSTRAINTS;
 
 CREATE TABLE venta_sucursal AS
 SELECT
