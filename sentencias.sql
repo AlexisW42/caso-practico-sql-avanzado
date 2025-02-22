@@ -424,11 +424,105 @@ WHERE f.fecha_factura BETWEEN TO_DATE('2019-04-01', 'YYYY-MM-DD') AND TO_DATE('2
 GROUP BY CUBE (cli.nombre_cl, can.canal_venta)
 ORDER BY cli.nombre_cl, can.canal_venta;
 
+
 -- 3) Se necesita conocer en una sola consulta el promedio de los montos
 -- facturados desagregados por dos grupos (agrupamientos): 1) nombre de cliente
 -- y nombre del canal de venta, 2) nombre de cliente y nombre de vendedor con
 -- los subtotales respectivos para el año que más se facturo.
 
+SELECT
+    cli.nombre_cl,
+    ven.vendedor,
+    can.canal_venta,
+    AVG(fac.total_factura) AS "PROMEDIO FACTURADO"
+FROM
+    facturas fac
+    JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
+    JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
+    JOIN canales can ON fac.fk_canales = can.id_canal
+WHERE 
+    EXTRACT(YEAR FROM fac.fecha_factura) = (
+        SELECT a.anho
+        FROM
+            (SELECT EXTRACT(YEAR FROM f.fecha_factura) AS anho
+            FROM facturas f
+            GROUP BY EXTRACT(YEAR FROM f.fecha_factura)
+            ORDER BY AVG(f.total_factura) DESC) a
+        WHERE ROWNUM = 1)
+GROUP BY GROUPING SETS ((cli.nombre_cl, can.canal_venta), (cli.nombre_cl, ven.vendedor))
+ORDER BY cli.nombre_cl, can.canal_venta, ven.vendedor;
+
 
 -- 4) Realice la consulta de los agrupamientos solicitada en el item 3 mediante
 -- los operadores UNION ALL.
+
+SELECT
+    cli.nombre_cl,
+    NULL AS vendedor,
+    can.canal_venta,
+    AVG(fac.total_factura) AS "PROMEDIO FACTURADO"
+FROM
+    facturas fac
+    JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
+    JOIN canales can ON fac.fk_canales = can.id_canal
+WHERE 
+    EXTRACT(YEAR FROM fac.fecha_factura) = (
+        SELECT a.anho
+        FROM
+            (SELECT EXTRACT(YEAR FROM f.fecha_factura) AS anho
+            FROM facturas f
+            GROUP BY EXTRACT(YEAR FROM f.fecha_factura)
+            ORDER BY AVG(f.total_factura) DESC) a
+        WHERE ROWNUM = 1
+    )
+GROUP BY 
+    cli.nombre_cl, can.canal_venta
+
+UNION ALL
+
+SELECT
+    cli.nombre_cl,
+    ven.vendedor,
+    NULL AS canal_venta,  -- No hay canal de venta en esta agrupación
+    AVG(fac.total_factura) AS "PROMEDIO FACTURADO"
+FROM
+    facturas fac
+    JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
+    JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
+WHERE 
+    EXTRACT(YEAR FROM fac.fecha_factura) = (
+        SELECT a.anho
+        FROM
+            (SELECT EXTRACT(YEAR FROM f.fecha_factura) AS anho
+            FROM facturas f
+            GROUP BY EXTRACT(YEAR FROM f.fecha_factura)
+            ORDER BY AVG(f.total_factura) DESC) a
+        WHERE ROWNUM = 1
+    )
+GROUP BY 
+    cli.nombre_cl, ven.vendedor
+ORDER BY nombre_cl, canal_venta, vendedor;
+
+
+
+SELECT
+    cli.nombre_cl,
+    ven.vendedor,
+    can.canal_venta,
+    AVG(fac.total_factura) AS "PROMEDIO FACTURADO"
+FROM
+    facturas fac
+    JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
+    JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
+    JOIN canales can ON fac.fk_canales = can.id_canal
+WHERE 
+    EXTRACT(YEAR FROM fac.fecha_factura) = (
+        SELECT a.anho
+        FROM
+            (SELECT EXTRACT(YEAR FROM f.fecha_factura) AS anho
+            FROM facturas f
+            GROUP BY EXTRACT(YEAR FROM f.fecha_factura)
+            ORDER BY AVG(f.total_factura) DESC) a
+        WHERE ROWNUM = 1)
+GROUP BY GROUPING SETS ((cli.nombre_cl, can.canal_venta), (cli.nombre_cl, ven.vendedor))
+ORDER BY cli.nombre_cl, can.canal_venta, ven.vendedor;
