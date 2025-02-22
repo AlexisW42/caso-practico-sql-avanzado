@@ -421,13 +421,7 @@ FROM
     JOIN canales can ON f.fk_canales = can.id_canal
     JOIN cobranzas cob ON f.id_factura = cob.fk_facturas
 WHERE f.fecha_factura BETWEEN TO_DATE('2019-04-01', 'YYYY-MM-DD') AND TO_DATE('2019-06-30', 'YYYY-MM-DD')
-GROUP BY
-    GROUPING SETS (
-        (cli.nombre_cl, can.canal_venta),
-        (cli.nombre_cl),
-        (can.canal_venta),
-        ()
-    )
+GROUP BY CUBE (cli.nombre_cl, can.canal_venta)
 ORDER BY cli.nombre_cl, can.canal_venta;
 
 -- 3) Se necesita conocer en una sola consulta el promedio de los montos
