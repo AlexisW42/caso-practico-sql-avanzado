@@ -1,5 +1,4 @@
 -- FALTAN:
--- * 8 de la parte 1
 -- * 10 y 17 de la parte 2
 
 -- Parte 1:
@@ -149,6 +148,19 @@ WHERE LENGTH(cli.ciudad_cl) > 6
     AND cob.fecha_cobro BETWEEN TO_DATE('2019-01-01', 'YYYY-MM-DD') AND TO_DATE('2019-03-31', 'YYYY-MM-DD')
 ORDER BY cli.nombre_cl;
 
+SELECT
+    suc.sucursal,
+    ser.fecha_inicio_serv,
+    ser.fecha_fin_serv,
+    cli.nombre_cl,
+    cob.fecha_cobro,
+    cob.valor_cobrado
+FROM sucursales suc
+JOIN servicios ser ON suc.id_sucursal = ser.fk_sucursales
+JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
+JOIN cobranzas cob ON cli.id_cliente = cob.fk_clientes
+WHERE fecha_cobro BETWEEN TO_DATE('2019-01-01', 'YYYY-MM-DD') AND TO_DATE('2019-03-31', 'YYYY-MM-DD')
+    AND length(ciudad_cl) > 6;
 
 -- 9) Consultar el nombre de las diferentes sucursales que han generado
 -- servicios
@@ -340,17 +352,14 @@ GROUP BY sucursal;
 -- Aplique subconsulta utilizando la referencia IN o EXIST. (Lo mas parecido
 -- que logre)
 
-SELECT COUNT(DISTINCT ser.fk_sucursales) AS cantidad_sucursales_con_cobranza
-FROM servicios ser
-JOIN cobranzas cob ON ser.id_servicio = cob.fk_facturas;
-
-SELECT COUNT(DISTINCT ser.id_sucursal) AS cantidad_sucursales_con_cobranza
-FROM sucursales ser
+SELECT COUNT(DISTINCT suc.id_sucursal) AS "Sucursales con cobranza"
+FROM sucursales suc
 WHERE EXISTS (
     SELECT 1
     FROM servicios ser
-    JOIN cobranzas cob ON ser.id_servicio = cob.fk_facturas
-    WHERE ser.fk_sucursales = ser.id_sucursal
+    JOIN facturas fac ON ser.fk_clientes = fac.fk_clientes
+    JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas
+    WHERE ser.fk_sucursales = suc.id_sucursal
 );
 
 
