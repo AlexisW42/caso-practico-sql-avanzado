@@ -1,5 +1,4 @@
 -- FALTAN:
--- * 8 de la parte 1
 -- * 10 y 17 de la parte 2
 
 -- Parte 1:
