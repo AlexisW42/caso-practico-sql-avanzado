@@ -12,11 +12,11 @@ SELECT
     fac.id_factura AS "Identificador factura",
     fac.fecha_factura AS "Fecha factura",
     fac.vr_antes_iva AS "Precio sin iva"
-FROM facturas fac
-JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
-JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
-WHERE ven.vendedor = 'PABLO MARMOL'
-AND cli.ciudad_cl = 'MEDELLIN';
+FROM 
+    facturas fac
+    JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
+    JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
+WHERE ven.vendedor = 'PABLO MARMOL' AND cli.ciudad_cl = 'MEDELLIN';
 
 
 -- 2) Consultar los clientes con el siguiente formato de salida: ‘El Cliente
@@ -39,9 +39,10 @@ SELECT
     fac.fecha_factura AS "Fecha de factura",
     fac.total_factura AS "Total Factura",
     can.canal_venta AS "Canal de venta"
-FROM facturas fac
-JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
-JOIN canales can ON fac.fk_canales = can.id_canal
+FROM 
+    facturas fac
+    JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
+    JOIN canales can ON fac.fk_canales = can.id_canal
 ORDER BY ven.vendedor ASC, can.canal_venta DESC;
 
 
@@ -54,11 +55,12 @@ SELECT
     ser.id_servicio AS "Num. servicio",
     ser.costo_servicio AS "Costo",
     cli.nombre_cl AS "Cliente"
-FROM servicios ser
-JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
-JOIN sucursales suc ON ser.fk_sucursales = suc.id_sucursal
+FROM 
+    servicios ser
+    JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
+    JOIN sucursales suc ON ser.fk_sucursales = suc.id_sucursal
 WHERE cli.segmento_cl = 'HOMBRE'
-AND (ser.fecha_fin_serv - ser.fecha_inicio_serv) > 10;
+    AND (ser.fecha_fin_serv - ser.fecha_inicio_serv) > 10;
 
 
 -- 5) Visualizar un listado de las facturas procesadas en Perú con su número de
@@ -76,8 +78,9 @@ SELECT
         WHEN cli.segmento_cl = 'HOMBRE'
             THEN 'SEGMENTO HOMBRE Y RESIDE EN LA CIUDAD ' || cli.ciudad_cl
     END AS mensaje_segmento
-FROM facturas fac
-JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
+FROM 
+    facturas fac
+    JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
 WHERE cli.pais_cl = 'PERÚ';
 
 
@@ -92,13 +95,13 @@ SELECT
     fac.total_factura AS "Total factura",
     cob.fecha_cobro AS "Fecha de cobro",
     cob.valor_cobrado AS "Valor cobrado"
-FROM facturas fac
-JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
-JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas
-JOIN canales can ON fac.fk_canales = can.id_canal
-WHERE cli.pais_cl = 'ESPAÑA'
-AND can.canal_venta = 'PUNTOS DE VENTAS'
-AND cob.valor_cobrado = fac.total_factura;
+FROM 
+    facturas fac
+    JOIN clientes cli ON fac.fk_clientes = cli.id_cliente
+    JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas
+    JOIN canales can ON fac.fk_canales = can.id_canal
+WHERE cli.pais_cl = 'ESPAÑA' AND can.canal_venta = 'PUNTOS DE VENTAS'
+    AND cob.valor_cobrado = fac.total_factura;
 
 
 -- 7) Consultar el nombre de vendedor, canal, números de factura, el cobro
@@ -117,14 +120,34 @@ SELECT
             THEN 'Cobro Total'
         ELSE 'Cobro Parcial'
     END AS "Estado cobro"
-FROM facturas fac
-JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
-JOIN canales can ON fac.fk_canales = can.id_canal
-JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas
+FROM 
+    facturas fac
+    JOIN vendedores ven ON fac.fk_vendedores = ven.id_vendedor
+    JOIN canales can ON fac.fk_canales = can.id_canal
+    JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas
 ORDER BY fac.fk_clientes ASC, fac.id_factura ASC;
 
 
--- ?????
+-- 8) Consultar los nombres de las sucursales, fechas de inicio y fin del
+-- servicio, los nombres de los clientes, las fechas cobros y valores cobrados
+-- para los clientes cuyas ciudades contengan más de 6 letras y las fechas de
+-- cobro sea del primer trimestre del año 2019. (Lo mas parecido que logre)
+
+SELECT
+    suc.sucursal AS "Sucursal",
+    ser.fecha_inicio_serv AS "Inicio servicio",
+    ser.fecha_fin_serv AS "Final Servicio",
+    cli.nombre_cl AS "Cliente",
+    cob.fecha_cobro AS "Fecha cobro",
+    cob.valor_cobrado AS "Valor cobrado"
+FROM 
+    servicios ser
+    JOIN sucursales suc ON ser.fk_sucursales = suc.id_sucursal
+    JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
+    JOIN cobranzas cob ON ser.fk_clientes = cob.fk_clientes
+WHERE LENGTH(cli.ciudad_cl) > 6
+    AND cob.fecha_cobro BETWEEN TO_DATE('2019-01-01', 'YYYY-MM-DD') AND TO_DATE('2019-03-31', 'YYYY-MM-DD')
+ORDER BY cli.nombre_cl;
 
 
 -- 9) Consultar el nombre de las diferentes sucursales que han generado
@@ -184,7 +207,33 @@ HAVING
 GROUP BY EXTRACT(YEAR FROM fecha_factura));
 
 
--- ?????
+-- 10) Mostrar la cantidad de servicios prestados realizados por canal de venta
+-- y el monto total cobrado por dichos servicios en el segundo trimestre del año
+-- 2017 para los clientes de España, mostrar para el canal de venta junto con la
+-- cantidad de factura y monto total cobrado.  (Lo mas parecido que logre)
+
+SELECT 
+    can.canal_venta, 
+    COUNT(DISTINCT ser.id_servicio) AS cantidad_servicios, 
+    SUM(cob.valor_cobrado) AS monto_total_cobrado
+FROM 
+    servicios ser
+    JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
+    JOIN facturas fac ON cli.id_cliente = fac.fk_clientes
+    JOIN canales can ON fac.fk_canales = can.id_canal
+    JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas
+WHERE cli.pais_cl = 'ESPAÑA'
+AND ser.fecha_inicio_serv BETWEEN TO_DATE('2017-04-01', 'YYYY-MM-DD') AND TO_DATE('2017-06-30', 'YYYY-MM-DD')
+GROUP BY can.canal_venta;
+
+
+SELECT cli.nombre_cl, ser.servicio, COUNT(fac.id_factura) AS cantidad_facturas
+FROM clientes cli
+JOIN servicios ser ON cli.id_cliente = ser.fk_clientes
+JOIN facturas fac ON cli.id_cliente = fac.fk_clientes
+GROUP BY cli.nombre_cl, ser.servicio
+ORDER BY cli.nombre_cl, ser.servicio;
+
 
 
 -- 11) Consultar para los canales de venta, la cantidad de facturas y monto
@@ -286,7 +335,23 @@ FROM costos_servicios
 GROUP BY sucursal;
 
 
--- ?????
+
+-- 17) Visualizar cantidad de sucursales que tienen alguna cobranza registrada.
+-- Aplique subconsulta utilizando la referencia IN o EXIST. (Lo mas parecido
+-- que logre)
+
+SELECT COUNT(DISTINCT ser.fk_sucursales) AS cantidad_sucursales_con_cobranza
+FROM servicios ser
+JOIN cobranzas cob ON ser.id_servicio = cob.fk_facturas;
+
+SELECT COUNT(DISTINCT ser.id_sucursal) AS cantidad_sucursales_con_cobranza
+FROM sucursales ser
+WHERE EXISTS (
+    SELECT 1
+    FROM servicios ser
+    JOIN cobranzas cob ON ser.id_servicio = cob.fk_facturas
+    WHERE ser.fk_sucursales = ser.id_sucursal
+);
 
 
 -- 18) Visualizar para los vendedores el monto total facturado con su
