@@ -123,8 +123,24 @@ JOIN cobranzas cob ON fac.id_factura = cob.fk_facturas
 ORDER BY fac.fk_clientes ASC, fac.id_factura ASC;
 
 
--- ?????
+-- 8)  Consultar los nombres de las sucursales, fechas de inicio 
+-- y fin del servicio, los nombres de los clientes, las fechas cobros
+-- y valores cobrados para los clientes cuyas ciudades contengan más de
+-- 6 letras y las fechas de cobro sea del primer trimestre del año 2019.
 
+SELECT
+    suc.sucursal,
+    ser.fecha_inicio_serv,
+    ser.fecha_fin_serv,
+    cli.nombre_cl,
+    cob.fecha_cobro,
+    cob.valor_cobrado
+FROM sucursales suc
+JOIN servicios ser ON suc.id_sucursal = ser.fk_sucursales
+JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
+JOIN cobranzas cob ON cli.id_cliente = cob.fk_clientes
+WHERE fecha_cobro BETWEEN TO_DATE('2019-01-01', 'YYYY-MM-DD') AND TO_DATE('2019-03-31', 'YYYY-MM-DD')
+    AND length(ciudad_cl) > 6;
 
 -- 9) Consultar el nombre de las diferentes sucursales que han generado
 -- servicios
