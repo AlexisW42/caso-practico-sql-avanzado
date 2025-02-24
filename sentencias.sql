@@ -133,28 +133,12 @@ ORDER BY fac.fk_clientes ASC, fac.id_factura ASC;
 -- cobro sea del primer trimestre del año 2019. (Lo mas parecido que logre)
 
 SELECT
-    suc.sucursal AS "Sucursal",
-    ser.fecha_inicio_serv AS "Inicio servicio",
-    ser.fecha_fin_serv AS "Final Servicio",
-    cli.nombre_cl AS "Cliente",
-    cob.fecha_cobro AS "Fecha cobro",
-    cob.valor_cobrado AS "Valor cobrado"
-FROM 
-    servicios ser
-    JOIN sucursales suc ON ser.fk_sucursales = suc.id_sucursal
-    JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
-    JOIN cobranzas cob ON ser.fk_clientes = cob.fk_clientes
-WHERE LENGTH(cli.ciudad_cl) > 6
-    AND cob.fecha_cobro BETWEEN TO_DATE('2019-01-01', 'YYYY-MM-DD') AND TO_DATE('2019-03-31', 'YYYY-MM-DD')
-ORDER BY cli.nombre_cl;
-
-SELECT
-    suc.sucursal,
-    ser.fecha_inicio_serv,
-    ser.fecha_fin_serv,
-    cli.nombre_cl,
-    cob.fecha_cobro,
-    cob.valor_cobrado
+    suc.sucursal,  AS "Sucursal",
+    ser.fecha_inicio_serv,  AS "Inicio servicio",
+    ser.fecha_fin_serv,  AS "Final Servicio",
+    cli.nombre_cl,  AS "Cliente",
+    cob.fecha_cobro,  AS "Fecha cobro",
+    cob.valor_cobrado  AS "Valor cobrado"
 FROM sucursales suc
 JOIN servicios ser ON suc.id_sucursal = ser.fk_sucursales
 JOIN clientes cli ON ser.fk_clientes = cli.id_cliente
